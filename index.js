@@ -16,7 +16,7 @@ app.use(methodOverride('_method'));
 app.set('view engine', 'ejs');
 
 // Mongo URI
-let mongoURI = 'mongodb://aakashvarma:varma123@ds145304.mlab.com:45304/kyledb'
+let mongoURI = 'mongodb://aakash:aakash123@ds145584.mlab.com:45584/mrict'
 
 // Create Mongo connection
 let conn = mongoose.createConnection(mongoURI);
@@ -63,6 +63,61 @@ app.post('/upload', upload.single('file'), (req, res) => {     // name in the in
     // res.json({file: req.file});
     res.redirect('/');
 });
+
+// @routes GET/ files
+// @desc Display all the files in JSON
+app.get('/files', (req, res) => {
+  gfs.files.find().toArray((err, files) => {
+    // Check if files
+    if(!files || files.length === 0){
+      return res.status(404).json({
+        err: 'No files exist'
+      });
+    }
+
+    // Files exist
+    return res.json(files);
+  });
+});
+
+// @routes GET/ files/:filename
+// @desc Display all the files in JSON
+app.get('/files/:filename', (req, res) => {
+  gfs.files.findOne({filename: req.params.filename}, (err, file) => {
+    if(!file || file.length === 0){
+      return res.status(404).json({
+        err: 'No file exists'
+      });
+    }
+
+    // File exists
+    return res.json(file);
+  });
+});
+
+// @routes GET/ image/:filename
+// @desc Display all the files in JSON
+app.get('/image/:filename', (req, res) => {
+  gfs.files.findOne({filename: req.params.filename}, (err, file) => {
+    if(!file || file.length === 0){
+      return res.status(404).json({
+        err: 'No file exists'
+      });
+    }
+
+    // Check if image
+    if(file.contentType === 'image/jpeg' || file.contentType === 'image/png'){
+      // Read output to browser
+      let readstream = gfs.createReadStream(file.filename);
+      readstream.pipe(res);
+    }else{
+      res.status(404).json({
+        err: 'Not an image'
+      });
+    }
+  });
+});
+
 
 let port = 5000;
 
